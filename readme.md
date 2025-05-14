@@ -10,6 +10,8 @@
 </pre>
 
 Usage:
+ - if needed create virtual env: `python3 -m venv venv`
+   - & install dependencies: `pip install -r requirements.txt`
  - ollama should be already running but make sure: `ollama --version `
  - run app.py: `python3 app.py`
  - web app should be running on: `localhost:5000`
