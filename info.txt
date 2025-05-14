@@ -1,0 +1,11 @@
+Chatbot
+
+ollama --> flaskProxy --> frontend
+
+
+to start:
+ - ollama should be already running but make sure: ollama --version
+ - run app.py
+
+cmd curl command to prompt ollama api:
+>curl http://localhost:11434/api/generate -d "{  \"model\": \"gemma:2b\",  \"prompt\": \"Hello there\"}" -H "Content-Type: application/json"
