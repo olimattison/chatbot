@@ -16,12 +16,18 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
+from flask import request, jsonify
+import requests
+import json
+
 @app.route('/chat', methods=['POST'])
 def chat():
     user_input = request.json.get("prompt", "")
+    model = request.json.get("model", "gemma3:4b-it-qat")  # Default fallback
+    print(f"Received model: {model!r}")
 
     payload = {
-        "model": "gemma3:1b-it-qat",
+        "model": model,
         "prompt": user_input,
         "stream": True
     }
@@ -38,7 +44,11 @@ def chat():
 
         return jsonify({"response": reply})
     except Exception as e:
-        return jsonify({"response": f"Error contacting Ollama: {e}"}), 500
+        print(jsonify({"error": f"Error contacting Ollama: {e}"}))
+        return jsonify({
+            "error": f"Error contacting Ollama"
+        }), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)

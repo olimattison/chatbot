@@ -31,11 +31,25 @@ This project has two versions: Docker and non-Docker.
  
 
 
+### Features
+  - Functional chatbot interface built with Flask and Js powered by Ollama
+
+
+
 <br></br>
 ---
+
 #### Dev:
+todo:
+ - dont touch the ui its perfect
+ - UPDATE README with node module installation
+
+
+installed moduules:
+  - marked
+  - bootstrap css
 
 cmd curl command to prompt ollama api:
 >```bash
->curl http://localhost:11434/api/generate -d "{  \"model\": \"gemma:2b\",  \"prompt\": \"Hello there\"}" -H "Content-Type: application/json"
+>curl http://localhost:11434/api/generate -d "{  \"model\": \"gemma:4b-it-qat\",  \"prompt\": \"Hello there\"}" -H "Content-Type: application/json"
 ```

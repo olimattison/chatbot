@@ -3,29 +3,172 @@
 <head>
   <meta charset="UTF-8">
   <title>Ollama Chatbot</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link href="/static/node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="/static/node_modules/marked/marked.min.js"></script>
   <style>
-    body { background: #f9f9f9; font-family: sans-serif; padding: 2rem; }
-    #chat { max-width: 800px; margin: auto; background: #fff; border-radius: 10px; padding: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    .user, .bot { margin-bottom: 1rem; padding: 0.75rem; border-radius: 0.5rem; }
-    .user { background-color: #e0f7fa; text-align: right; }
-    .bot { background-color: #f1f1f1; text-align: left; white-space: pre-wrap; }
-    #typing { font-style: italic; color: #888; display: none; }
-    pre { background: #eee; padding: 0.5rem; border-radius: 5px; overflow-x: auto; }
-    code { color: #d63384; font-family: monospace; }
+    :root {
+      --bg-light: #f9f9f9;
+      --bg-dark: #ffffff;
+      --primary: #2563eb;
+      --primary-light: #3b82f6;
+      --accent: #e0f2fe;
+      --text: #1f2937;
+      --border: #d1d5db;
+    }
+
+    body {
+      background: var(--bg-light);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      margin: 0;
+      padding: 2rem;
+      color: var(--text);
+    }
+
+    #head-container {
+      text-align: center;
+      padding: 2rem 1rem;
+      background-color: var(--primary);
+      color: #fff;
+      border-radius: 10px;
+      margin-bottom: 2rem;
+    }
+
+    #chat-container {
+      max-width: 800px;
+      margin: auto;
+    }
+
+    #model-selector {
+      background: var(--bg-dark);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 0 auto 1rem auto; 
+      max-width: 400px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    #model-selector label {
+      font-weight: 600;
+      margin-right: 1rem;
+    }
+
+    #chatbox-wrapper {
+      background-color: #f0f4ff;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+      max-width: 900px;
+      margin: auto;
+    }
+
+
+
+    #chat {
+      background: var(--bg-dark);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: none;
+    }
+
+    .user, .bot {
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+    }
+
+    .user {
+      background-color: var(--accent);
+      text-align: right;
+    }
+
+    .bot {
+      background-color: #f1f1f1;
+      text-align: left;
+      white-space: pre-wrap;
+    }
+
+    #typing {
+      font-style: italic;
+      color: #888;
+      display: none;
+    }
+
+    pre {
+      background: #eee;
+      padding: 0.5rem;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+
+    code {
+      color: #d63384;
+      font-family: monospace;
+    }
+
+    .input-group {
+      margin-top: 1.5rem;
+    }
+
+    select.form-select {
+      max-width: 200px;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem;
+      }
+
+      #chat {
+        padding: 1rem;
+      }
+
+      #head-container {
+        padding: 1rem;
+      }
+
+      #model-selector {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+    }
   </style>
 </head>
 <body>
-  <div id="chat">
-    <div id="messages"></div>
-    <div id="typing" class="bot">Bot is thinking hard<span id="dots">...</span></div>
-    <div class="input-group mt-4">
-      <input type="text" id="userInput" class="form-control" placeholder="Type your message...">
-      <button onclick="sendMessage()" class="btn btn-primary">Send</button>
+  <div id="head-container">
+    <h1>Ollama Chatbot</h1>
+    <div id="description">
+      <p>A basic AI chatbot interface for locally run models.</p>
     </div>
   </div>
+
+  <div id="chat-container">
+  <div id="chatbox-wrapper">
+    <div id="model-selector">
+      <label for="modelSelect">Current Model:</label>
+      <select class="form-select" id="modelSelect" aria-label="Model selection">
+        <option selected disabled>Loading models...</option>
+      </select>
+    </div>
+    <div id="errorBox" class="alert alert-danger alert-dismissible fade show" role="alert" style="display: none;">
+      <span id="errorMessage"></span>
+      <button type="button" class="btn-close" aria-label="Close" onclick="hideError()"></button>
+    </div>
+    <div id="chat">
+      <div id="messages"></div>
+      <div id="typing" class="bot">Bot is thinking<span id="dots">...</span></div>
+      <div class="input-group">
+        <input type="text" id="userInput" class="form-control" placeholder="Type your message...">
+        <button onclick="sendMessage()" class="btn btn-primary">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
   <script src="/static/script.js"></script>
 </body>
 </html>
-
