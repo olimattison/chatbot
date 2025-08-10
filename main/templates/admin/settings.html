@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Settings - Llama Chat</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --primary-light: #818cf8;
+      --secondary: #f8fafc;
+      --accent: #e0e7ff;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --border: #e2e8f0;
+      --border-light: #f1f5f9;
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #f59e0b;
+      --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--secondary);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .header {
+      background: var(--bg-gradient);
+      color: white;
+      padding: 2rem;
+      border-radius: 20px;
+      margin-bottom: 2rem;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 1.1rem;
+    }
+
+    .nav-bar {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .nav-btn {
+      padding: 0.75rem 1.5rem;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      text-decoration: none;
+      color: var(--text-primary);
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .nav-btn:hover {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .nav-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .settings-grid {
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .setting-card {
+      background: white;
+      border-radius: 15px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    .setting-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .setting-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .setting-description {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    .setting-form {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-end;
+    }
+
+    .form-group {
+      flex: 1;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.2s ease;
+      background: var(--secondary);
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      background: white;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .setting-category {
+      margin-bottom: 2rem;
+    }
+
+    .category-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .flash-messages {
+      margin-bottom: 2rem;
+    }
+
+    .flash-message {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .flash-success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    .flash-error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .setting-form {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Header -->
+    <div class="header">
+      <h1><i class="fas fa-cogs"></i> System Settings</h1>
+      <p>Configure application behavior and limits</p>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-bar">
+      <a href="{{ url_for('admin_dashboard') }}" class="nav-btn">
+        <i class="fas fa-tachometer-alt"></i> Dashboard
+      </a>
+      <a href="{{ url_for('admin_users') }}" class="nav-btn">
+        <i class="fas fa-users"></i> Users
+      </a>
+      <a href="{{ url_for('admin_settings') }}" class="nav-btn active">
+        <i class="fas fa-cogs"></i> Settings
+      </a>
+    </div>
+
+    <!-- Settings -->
+    <div class="settings-grid">
+      <!-- Chat Settings -->
+      <div class="setting-category">
+        <h2 class="category-title">
+          <i class="fas fa-comments"></i> Chat Configuration
+        </h2>
+        
+        {% for setting in settings %}
+          {% if 'session' in setting.key or 'message' in setting.key or 'model' in setting.key %}
+          <div class="setting-card">
+            <div class="setting-header">
+              <div class="setting-title">{{ setting.key.replace('_', ' ').title() }}</div>
+            </div>
+            <div class="setting-description">{{ setting.description or 'No description available' }}</div>
+            <form method="POST" action="{{ url_for('admin_update_setting', key=setting.key) }}" class="setting-form">
+              <div class="form-group">
+                <label for="value_{{ setting.key }}">Value</label>
+                {% if setting.key == 'enable_user_registration' %}
+                  <select name="value" id="value_{{ setting.key }}">
+                    <option value="true" {% if setting.value == 'true' %}selected{% endif %}>Enabled</option>
+                    <option value="false" {% if setting.value == 'false' %}selected{% endif %}>Disabled</option>
+                  </select>
+                {% else %}
+                  <input type="text" name="value" id="value_{{ setting.key }}" value="{{ setting.value }}" required>
+                {% endif %}
+              </div>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Save
+              </button>
+            </form>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      <!-- User Settings -->
+      <div class="setting-category">
+        <h2 class="category-title">
+          <i class="fas fa-users"></i> User Management
+        </h2>
+        
+        {% for setting in settings %}
+          {% if 'user' in setting.key or 'registration' in setting.key %}
+          <div class="setting-card">
+            <div class="setting-header">
+              <div class="setting-title">{{ setting.key.replace('_', ' ').title() }}</div>
+            </div>
+            <div class="setting-description">{{ setting.description or 'No description available' }}</div>
+            <form method="POST" action="{{ url_for('admin_update_setting', key=setting.key) }}" class="setting-form">
+              <div class="form-group">
+                <label for="value_{{ setting.key }}">Value</label>
+                {% if setting.key == 'enable_user_registration' %}
+                  <select name="value" id="value_{{ setting.key }}">
+                    <option value="true" {% if setting.value == 'true' %}selected{% endif %}>Enabled</option>
+                    <option value="false" {% if setting.value == 'false' %}selected{% endif %}>Disabled</option>
+                  </select>
+                {% else %}
+                  <input type="text" name="value" id="value_{{ setting.key }}" value="{{ setting.value }}" required>
+                {% endif %}
+              </div>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Save
+              </button>
+            </form>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</body>
+</html> 

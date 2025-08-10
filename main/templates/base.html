@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Llama Chat{% endblock %}</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="{{ url_for('index') }}" class="navbar-brand">
+        <!-- <img src="{{ url_for('static', filename='images/llama-logo.svg') }}" alt="Llama Chat" class="navbar-logo">
+        -->
+        Llama Chat
+      </a>
+      
+      <ul class="navbar-nav">
+        <li><a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">
+          <i class="fas fa-comments"></i> Chat
+        </a></li>
+        <li><a href="{{ url_for('sessions') }}" class="{% if request.endpoint == 'sessions' %}active{% endif %}">
+          <i class="fas fa-history"></i> Sessions
+        </a></li>
+        {% if current_user.is_authenticated and current_user.has_role('admin') %}
+        <li><a href="{{ url_for('admin_dashboard') }}" class="{% if request.endpoint.startswith('admin') %}active{% endif %}">
+          <i class="fas fa-cog"></i> Admin
+        </a></li>
+        {% endif %}
+      </ul>
+      
+      <div class="navbar-user">
+        {% if current_user.is_authenticated %}
+        <div class="user-menu">
+          <button class="user-menu-btn">
+            <i class="fas fa-user"></i>
+            {{ current_user.name or current_user.username }}
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="user-dropdown">
+            <a href="{{ url_for('profile') }}">
+              <i class="fas fa-user-circle"></i> Profile
+            </a>
+            <a href="{{ url_for('logout') }}">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+          </div>
+        </div>
+        {% else %}
+        <a href="{{ url_for('login') }}" class="user-menu-btn">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+          <div class="flash-message flash-{{ category }}">
+            {{ message }}
+            <button class="flash-close">&times;</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Main Content -->
+  <main class="main-container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Flash Messages JavaScript -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Auto-hide flash messages
+      const flashMessages = document.querySelectorAll('.flash-message');
+      flashMessages.forEach(function(message) {
+        setTimeout(function() {
+          message.style.opacity = '0';
+          setTimeout(function() {
+            message.remove();
+          }, 300);
+        }, 5000);
+      });
+
+      // Close flash messages on click
+      document.querySelectorAll('.flash-close').forEach(function(button) {
+        button.addEventListener('click', function() {
+          this.parentElement.style.opacity = '0';
+          setTimeout(function() {
+            button.parentElement.remove();
+          }, 300);
+        });
+      });
+    });
+  </script>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html> 

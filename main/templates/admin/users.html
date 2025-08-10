@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Management - Llama Chat</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --primary-light: #818cf8;
+      --secondary: #f8fafc;
+      --accent: #e0e7ff;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --border: #e2e8f0;
+      --border-light: #f1f5f9;
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #f59e0b;
+      --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--secondary);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .header {
+      background: var(--bg-gradient);
+      color: white;
+      padding: 2rem;
+      border-radius: 20px;
+      margin-bottom: 2rem;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 1.1rem;
+    }
+
+    .nav-bar {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .nav-btn {
+      padding: 0.75rem 1.5rem;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      text-decoration: none;
+      color: var(--text-primary);
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .nav-btn:hover {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .nav-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .card {
+      background: white;
+      border-radius: 15px;
+      padding: 2rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    .card h2 {
+      margin-bottom: 1.5rem;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .users-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    .users-table th,
+    .users-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .users-table th {
+      background: var(--border-light);
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .users-table tr:hover {
+      background: var(--border-light);
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .user-details h4 {
+      margin-bottom: 0.25rem;
+      color: var(--text-primary);
+    }
+
+    .user-details p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .role-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .role-admin {
+      background: var(--error);
+      color: white;
+    }
+
+    .role-moderator {
+      background: var(--warning);
+      color: white;
+    }
+
+    .role-premium {
+      background: var(--success);
+      color: white;
+    }
+
+    .role-basic {
+      background: var(--text-muted);
+      color: white;
+    }
+
+    .status-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .status-active {
+      background: var(--success);
+      color: white;
+    }
+
+    .status-inactive {
+      background: var(--text-muted);
+      color: white;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-secondary {
+      background: var(--border-light);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border);
+      transform: translateY(-1px);
+    }
+
+    .btn-danger {
+      background: var(--error);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+      transform: translateY(-1px);
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 300px;
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .filter-select {
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 1rem;
+      background: white;
+      cursor: pointer;
+    }
+
+    .filter-select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .flash-messages {
+      margin-bottom: 2rem;
+    }
+
+    .flash-message {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .flash-success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    .flash-error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .users-table {
+        font-size: 0.9rem;
+      }
+
+      .users-table th,
+      .users-table td {
+        padding: 0.5rem;
+      }
+
+      .search-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .search-input {
+        min-width: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Header -->
+    <div class="header">
+      <h1><i class="fas fa-users"></i> User Management</h1>
+      <p>Manage user accounts, roles, and permissions</p>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-bar">
+      <a href="{{ url_for('admin_dashboard') }}" class="nav-btn">
+        <i class="fas fa-tachometer-alt"></i> Dashboard
+      </a>
+      <a href="{{ url_for('admin_users') }}" class="nav-btn active">
+        <i class="fas fa-users"></i> Users
+      </a>
+      <a href="{{ url_for('admin_settings') }}" class="nav-btn">
+        <i class="fas fa-cogs"></i> Settings
+      </a>
+      <a href="{{ url_for('index') }}" class="nav-btn">
+        <i class="fas fa-comments"></i> Chat
+      </a>
+      <a href="{{ url_for('profile') }}" class="nav-btn">
+        <i class="fas fa-user"></i> Profile
+      </a>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="search-bar">
+      <input type="text" class="search-input" placeholder="Search users by name, username, or email..." id="searchInput">
+      <select class="filter-select" id="roleFilter">
+        <option value="">All Roles</option>
+        <option value="admin">Admin</option>
+        <option value="moderator">Moderator</option>
+        <option value="premium">Premium</option>
+        <option value="basic">Basic</option>
+      </select>
+      <select class="filter-select" id="statusFilter">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card">
+      <h2><i class="fas fa-list"></i> All Users ({{ users|length }})</h2>
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Joined</th>
+            <th>Last Login</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr class="user-row" data-role="{{ user.role.value }}" data-status="{{ 'active' if user.is_active else 'inactive' }}">
+            <td>
+              <div class="user-info">
+                <div class="user-avatar">
+                  <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                  <h4>{{ user.name }}</h4>
+                  <p>@{{ user.username }}{% if user.email %} • {{ user.email }}{% endif %}</p>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="role-badge role-{{ user.role.value }}">
+                {{ user.role.value }}
+              </span>
+            </td>
+            <td>
+              <span class="status-badge status-{{ 'active' if user.is_active else 'inactive' }}">
+                {{ 'Active' if user.is_active else 'Inactive' }}
+              </span>
+            </td>
+            <td>{{ user.created_at.strftime('%B %d, %Y') }}</td>
+            <td>
+              {% if user.last_login %}
+                {{ user.last_login.strftime('%B %d, %Y at %I:%M %p') }}
+              {% else %}
+                Never
+              {% endif %}
+            </td>
+            <td>
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <a href="{{ url_for('admin_edit_user', user_id=user.id) }}" class="btn btn-primary">
+                  <i class="fas fa-edit"></i> Edit
+                </a>
+                {% if user.id != current_user.id %}
+                <button class="btn btn-danger" onclick="toggleUserStatus({{ user.id }}, '{{ 'deactivate' if user.is_active else 'activate' }}')">
+                  <i class="fas fa-{{ 'ban' if user.is_active else 'check' }}"></i>
+                  {{ 'Deactivate' if user.is_active else 'Activate' }}
+                </button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      const rows = document.querySelectorAll('.user-row');
+      
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+      });
+    });
+
+    // Role filter
+    document.getElementById('roleFilter').addEventListener('change', function() {
+      const selectedRole = this.value;
+      const rows = document.querySelectorAll('.user-row');
+      
+      rows.forEach(row => {
+        const userRole = row.dataset.role;
+        const isVisible = !selectedRole || userRole === selectedRole;
+        row.style.display = isVisible ? '' : 'none';
+      });
+    });
+
+    // Status filter
+    document.getElementById('statusFilter').addEventListener('change', function() {
+      const selectedStatus = this.value;
+      const rows = document.querySelectorAll('.user-row');
+      
+      rows.forEach(row => {
+        const userStatus = row.dataset.status;
+        const isVisible = !selectedStatus || userStatus === selectedStatus;
+        row.style.display = isVisible ? '' : 'none';
+      });
+    });
+
+    // Toggle user status
+    function toggleUserStatus(userId, action) {
+      if (confirm(`Are you sure you want to ${action} this user?`)) {
+        // This would typically be an AJAX call to update the user status
+        // For now, we'll just show an alert
+        alert(`User ${action} functionality would be implemented here.`);
+      }
+    }
+  </script>
+</body>
+</html> 

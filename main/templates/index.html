@@ -1,174 +1,359 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Ollama Chatbot</title>
-  <link href="/static/node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="/static/node_modules/marked/marked.min.js"></script>
-  <style>
-    :root {
-      --bg-light: #f9f9f9;
-      --bg-dark: #ffffff;
-      --primary: #2563eb;
-      --primary-light: #3b82f6;
-      --accent: #e0f2fe;
-      --text: #1f2937;
-      --border: #d1d5db;
-    }
+{% extends "base.html" %}
 
-    body {
-      background: var(--bg-light);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-      margin: 0;
-      padding: 2rem;
-      color: var(--text);
-    }
+{% block title %}Chat - Llama Chat{% endblock %}
 
-    #head-container {
-      text-align: center;
-      padding: 2rem 1rem;
-      background-color: var(--primary);
-      color: #fff;
-      border-radius: 10px;
-      margin-bottom: 2rem;
-    }
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+{% endblock %}
 
-    #chat-container {
-      max-width: 800px;
-      margin: auto;
-    }
-
-    #model-selector {
-      background: var(--bg-dark);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1rem;
-      margin: 0 auto 1rem auto; 
-      max-width: 400px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-    }
-
-    #model-selector label {
-      font-weight: 600;
-      margin-right: 1rem;
-    }
-
-    #chatbox-wrapper {
-      background-color: #f0f4ff;
-      border-radius: 16px;
-      padding: 2rem;
-      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-      max-width: 900px;
-      margin: auto;
-    }
-
-
-
-    #chat {
-      background: var(--bg-dark);
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: none;
-    }
-
-    .user, .bot {
-      margin-bottom: 1rem;
-      padding: 0.75rem 1rem;
-      border-radius: 0.5rem;
-    }
-
-    .user {
-      background-color: var(--accent);
-      text-align: right;
-    }
-
-    .bot {
-      background-color: #f1f1f1;
-      text-align: left;
-      white-space: pre-wrap;
-    }
-
-    #typing {
-      font-style: italic;
-      color: #888;
-      display: none;
-    }
-
-    pre {
-      background: #eee;
-      padding: 0.5rem;
-      border-radius: 5px;
-      overflow-x: auto;
-    }
-
-    code {
-      color: #d63384;
-      font-family: monospace;
-    }
-
-    .input-group {
-      margin-top: 1.5rem;
-    }
-
-    select.form-select {
-      max-width: 200px;
-    }
-
-    @media (max-width: 600px) {
-      body {
-        padding: 1rem;
-      }
-
-      #chat {
-        padding: 1rem;
-      }
-
-      #head-container {
-        padding: 1rem;
-      }
-
-      #model-selector {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div id="head-container">
-    <h1>Ollama Chatbot</h1>
-    <div id="description">
-      <p>A basic AI chatbot interface for locally run models.</p>
+{% block content %}
+<div class="main-layout">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h3><i class="fas fa-history"></i> Recent Sessions</h3>
+    </div>
+    <div class="sidebar-content">
+      <button class="new-session-btn" onclick="createNewSession()">
+        <i class="fas fa-plus"></i> New Chat
+      </button>
+      
+      <div id="sessions-list">
+        {% if recent_sessions %}
+          {% for session in recent_sessions %}
+          <div class="session-item {% if session.id == active_session.id %}active{% endif %}" 
+               data-session-id="{{ session.id }}" onclick="loadSession({{ session.id }})">
+            <div class="session-title">{{ session.title or "New Chat" }}</div>
+            <div class="session-meta">
+              <span>{{ session.formatted_date() }}</span>
+              <span>{{ session.message_count() }} messages</span>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-sessions">
+            <i class="fas fa-comments"></i>
+            <p>No chat sessions yet</p>
+            <p class="text-muted">Start a new conversation!</p>
+          </div>
+        {% endif %}
+      </div>
     </div>
   </div>
 
-  <div id="chat-container">
-  <div id="chatbox-wrapper">
-    <div id="model-selector">
-      <label for="modelSelect">Current Model:</label>
-      <select class="form-select" id="modelSelect" aria-label="Model selection">
-        <option selected disabled>Loading models...</option>
-      </select>
-    </div>
-    <div id="errorBox" class="alert alert-danger alert-dismissible fade show" role="alert" style="display: none;">
-      <span id="errorMessage"></span>
-      <button type="button" class="btn-close" aria-label="Close" onclick="hideError()"></button>
-    </div>
-    <div id="chat">
-      <div id="messages"></div>
-      <div id="typing" class="bot">Bot is thinking<span id="dots">...</span></div>
-      <div class="input-group">
-        <input type="text" id="userInput" class="form-control" placeholder="Type your message...">
-        <button onclick="sendMessage()" class="btn btn-primary">Send</button>
+  <!-- Chat Container -->
+  <div class="chat-container">
+    <div class="chat-wrapper">
+      <!-- Model Selector -->
+      <div class="model-selector">
+        <label for="model-select">
+          <i class="fas fa-brain"></i> Model:
+        </label>
+        <select id="model-select" onchange="changeModel(this.value)">
+          {% for model in available_models %}
+          <option value="{{ model.name }}" {% if active_session.model_used == model.name %}selected{% endif %}>
+            {{ model.name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Messages Area -->
+      <div class="messages-container" id="messages-container">
+        <div class="welcome-message">
+          <div class="message bot">
+            <div class="message-content">
+              <h3>Hello!</h3>
+              <p>How can I help you today?</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Area -->
+      <div class="input-container">
+        <div class="input-wrapper">
+          <textarea 
+            id="user-input" 
+            class="input-field" 
+            placeholder="Type your message here..."
+            rows="1"
+            onkeydown="handleKeyPress(event)"
+          ></textarea>
+        </div>
+        <button id="send-btn" class="send-btn" onclick="sendMessage()" disabled>
+          <i class="fas fa-paper-plane"></i>
+        </button>
       </div>
     </div>
   </div>
 </div>
+{% endblock %}
 
-  <script src="/static/script.js"></script>
-</body>
-</html>
+{% block extra_scripts %}
+<script>
+  // Global variables
+  let currentSessionId = {{ active_session.id }};
+  let isTyping = false;
+  let currentModel = '{{ active_session.model_used }}';
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', function() {
+    loadSessionMessages(currentSessionId);
+    setupInputField();
+  });
+
+  // Input field setup
+  function setupInputField() {
+    const input = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+
+    input.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+      
+      sendBtn.disabled = !this.value.trim();
+    });
+  }
+
+  // Handle Enter key
+  function handleKeyPress(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      sendMessage();
+    }
+  }
+
+  // Send message
+  async function sendMessage() {
+    const input = document.getElementById('user-input');
+    const message = input.value.trim();
+    
+    if (!message || isTyping) return;
+
+    // Add user message to UI
+    addMessageToUI('user', message);
+    input.value = '';
+    input.style.height = 'auto';
+    document.getElementById('send-btn').disabled = true;
+
+    // Show typing indicator
+    showTypingIndicator();
+
+    try {
+      const response = await fetch('/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: message,
+          model: currentModel,
+          session_id: currentSessionId
+        })
+      });
+
+      const data = await response.json();
+      hideTypingIndicator();
+
+      if (data.error) {
+        addMessageToUI('bot', `Error: ${data.error}`, true);
+      } else {
+        addMessageToUI('bot', data.response, false, currentModel);
+        
+        // Update session in sidebar if this is a new session
+        if (data.session_id && data.session_id !== currentSessionId) {
+          currentSessionId = data.session_id;
+          updateSidebarSession(data.session_id, message);
+        } else if (currentSessionId) {
+          // Update existing session in sidebar
+          updateExistingSessionInSidebar(currentSessionId);
+        }
+      }
+    } catch (error) {
+      hideTypingIndicator();
+      addMessageToUI('bot', 'Sorry, there was an error processing your request.', true);
+    }
+  }
+
+  // Add message to UI
+  function addMessageToUI(role, content, isError = false, modelName = null) {
+    const container = document.getElementById('messages-container');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${role}`;
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    
+    if (isError) {
+      contentDiv.innerHTML = `<p style="color: var(--error);">${content}</p>`;
+    } else {
+      let messageContent = marked.parse(content);
+      
+      // Add model name at the top for bot responses
+      if (role === 'bot' && modelName) {
+        messageContent = `<div class="model-indicator"><small><strong>${modelName}</strong></small></div>${messageContent}`;
+      }
+      
+      contentDiv.innerHTML = messageContent;
+    }
+    
+    messageDiv.appendChild(contentDiv);
+    container.appendChild(messageDiv);
+    
+    // Scroll to bottom
+    container.scrollTop = container.scrollHeight;
+  }
+
+  // Show typing indicator
+  function showTypingIndicator() {
+    isTyping = true;
+    const container = document.getElementById('messages-container');
+    const indicator = document.createElement('div');
+    indicator.className = 'message bot typing-indicator';
+    indicator.id = 'typing-indicator';
+    indicator.innerHTML = `
+      <div class="message-content">
+        <div class="typing-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <span>Thinking...</span>
+      </div>
+    `;
+    container.appendChild(indicator);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  // Hide typing indicator
+  function hideTypingIndicator() {
+    isTyping = false;
+    const indicator = document.getElementById('typing-indicator');
+    if (indicator) {
+      indicator.remove();
+    }
+  }
+
+  // Load session messages
+  async function loadSessionMessages(sessionId) {
+    try {
+      const response = await fetch(`/api/session/${sessionId}/messages`);
+      const data = await response.json();
+      
+      const container = document.getElementById('messages-container');
+      container.innerHTML = '';
+      
+      if (data.messages && data.messages.length > 0) {
+        data.messages.forEach(msg => {
+          // For existing messages, we don't have the model name, so we'll skip it
+          addMessageToUI(msg.role, msg.content);
+        });
+      } else {
+        // Show welcome message for empty sessions
+        container.innerHTML = `
+          <div class="welcome-message">
+            <div class="message bot">
+              <div class="message-content">
+                <h3>Hello!</h3>
+                <p>How can I help you today?</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    }
+  }
+
+  // Load session
+  function loadSession(sessionId) {
+    currentSessionId = sessionId;
+    
+    // Update active state in sidebar
+    document.querySelectorAll('.session-item').forEach(item => {
+      item.classList.remove('active');
+    });
+    document.querySelector(`[data-session-id="${sessionId}"]`).classList.add('active');
+    
+    // Load messages
+    loadSessionMessages(sessionId);
+  }
+
+  // Create new session
+  function createNewSession() {
+    currentSessionId = null;
+    
+    // Clear messages
+    const container = document.getElementById('messages-container');
+    container.innerHTML = `
+      <div class="welcome-message">
+        <div class="message bot">
+          <div class="message-content">
+            <h3>Hello!</h3>
+            <p>How can I help you today?</p>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Update sidebar
+    document.querySelectorAll('.session-item').forEach(item => {
+      item.classList.remove('active');
+    });
+  }
+
+  // Change model
+  function changeModel(model) {
+    currentModel = model;
+  }
+
+  // Update sidebar session
+  function updateSidebarSession(sessionId, firstMessage) {
+    const sessionsList = document.getElementById('sessions-list');
+    const newSessionItem = document.createElement('div');
+    newSessionItem.className = 'session-item active';
+    newSessionItem.setAttribute('data-session-id', sessionId);
+    newSessionItem.onclick = () => loadSession(sessionId);
+    
+    const title = firstMessage.length > 30 ? firstMessage.substring(0, 30) + '...' : firstMessage;
+    
+    newSessionItem.innerHTML = `
+      <div class="session-title">${title}</div>
+      <div class="session-meta">
+        <span>Today</span>
+        <span>1 message</span>
+      </div>
+    `;
+    
+    // Remove active class from other sessions
+    document.querySelectorAll('.session-item').forEach(item => {
+      item.classList.remove('active');
+    });
+    
+    // Add new session at the top
+    const newSessionBtn = sessionsList.querySelector('.new-session-btn');
+    sessionsList.insertBefore(newSessionItem, newSessionBtn.nextSibling);
+  }
+
+  // Update existing session in sidebar
+  function updateExistingSessionInSidebar(sessionId) {
+    const sessionItem = document.querySelector(`[data-session-id="${sessionId}"]`);
+    if (sessionItem) {
+      // Update active state
+      document.querySelectorAll('.session-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      sessionItem.classList.add('active');
+      
+      // Update message count (this would need to be fetched from the server)
+      // For now, we'll just update the timestamp
+      const metaElement = sessionItem.querySelector('.session-meta span:first-child');
+      if (metaElement) {
+        metaElement.textContent = 'Just now';
+      }
+    }
+  }
+</script>
+{% endblock %}

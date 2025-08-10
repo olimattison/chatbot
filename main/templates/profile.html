@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Llama Chat{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+  <div class="page-header">
+    <h1><i class="fas fa-user-circle"></i> Profile</h1>
+    <p>Manage your account settings and preferences</p>
+  </div>
+
+  <div class="profile-content">
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="profile-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="profile-info">
+          <h2>{{ current_user.name or current_user.username }}</h2>
+          <p class="username">@{{ current_user.username }}</p>
+          {% if current_user.email %}
+          <p class="email">{{ current_user.email }}</p>
+          {% endif %}
+          <span class="role-badge">{{ current_user.role.value.title() }}</span>
+        </div>
+      </div>
+
+      <div class="profile-stats">
+        <div class="stat-item">
+          <div class="stat-number">{{ current_user.chat_sessions|length }}</div>
+          <div class="stat-label">Chat Sessions</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">{{ current_user.total_messages() }}</div>
+          <div class="stat-label">Total Messages</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">{{ current_user.days_since_joined() }}</div>
+          <div class="stat-label">Days Active</div>
+        </div>
+      </div>
+
+      <div class="profile-actions">
+        <a href="{{ url_for('edit_profile') }}" class="btn btn-primary">
+          <i class="fas fa-edit"></i> Edit Profile
+        </a>
+        <a href="{{ url_for('sessions') }}" class="btn btn-secondary">
+          <i class="fas fa-history"></i> View Sessions
+        </a>
+      </div>
+    </div>
+
+    <div class="recent-activity">
+      <h3><i class="fas fa-clock"></i> Recent Activity</h3>
+      {% if current_user.chat_sessions %}
+        <div class="activity-list">
+          {% for session in current_user.chat_sessions[:5] %}
+          <div class="activity-item">
+            <div class="activity-icon">
+              <i class="fas fa-comments"></i>
+            </div>
+            <div class="activity-content">
+              <div class="activity-title">{{ session.title or "New Chat" }}</div>
+              <div class="activity-meta">
+                {{ session.formatted_date() }} • {{ session.message_count() }} messages
+              </div>
+            </div>
+            <a href="{{ url_for('view_session', session_id=session.id) }}" class="activity-link">
+              <i class="fas fa-external-link-alt"></i>
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-activity">
+          <i class="fas fa-comments"></i>
+          <p>No recent activity</p>
+          <a href="{{ url_for('index') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Start Chatting
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+.profile-page {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.page-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.page-header p {
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+}
+
+.profile-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.profile-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: var(--shadow-lg);
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  background: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 2rem;
+}
+
+.profile-info h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.username {
+  color: var(--primary);
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.email {
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.role-badge {
+  background: var(--accent);
+  color: var(--primary);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--border-light);
+  border-radius: 12px;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  display: block;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  cursor: pointer;
+  flex: 1;
+  justify-content: center;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: var(--border-light);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--border);
+  transform: translateY(-1px);
+}
+
+.recent-activity {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: var(--shadow-lg);
+}
+
+.recent-activity h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.activity-item:hover {
+  background: var(--border-light);
+  border-color: var(--border);
+}
+
+.activity-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+}
+
+.activity-content {
+  flex: 1;
+}
+
+.activity-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.activity-meta {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.activity-link {
+  color: var(--primary);
+  text-decoration: none;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.activity-link:hover {
+  background: var(--accent);
+}
+
+.empty-activity {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-secondary);
+}
+
+.empty-activity i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-activity p {
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .profile-content {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .page-header h1 {
+    font-size: 2rem;
+  }
+  
+  .profile-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .profile-actions {
+    flex-direction: column;
+  }
+}
+</style>
+{% endblock %} 
